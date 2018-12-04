@@ -1,0 +1,20 @@
+// gRPC:
+// to build: python3 -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. busypy.proto
+
+syntax = "proto3";
+
+package busypy;
+
+service BusyPyService {
+
+    rpc GetSettings (BusyPySettings) returns (BusyPySettings) {
+    }
+
+}
+
+message BusyPySettings {
+    int32 cpuLoadPercent = 1;  // target CPU load %
+    int32 memoryPercent = 2;   // target memory consume %
+    bool clientExit = 3;       // set if client should exit
+    bool update = 4;           // set if client should update targets
+}
