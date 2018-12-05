@@ -32,7 +32,7 @@ BusyPySettings = {
 }
 
 SLEEP_INC = 0.0001
-SLEEP_INITIAL_VALUE = 0.1
+SLEEP_INITIAL_VALUE = 0.4
 SLEEP_INITIAL_BINARY_SRC_COUNT = 10   # # cycles to try sleep /= 2
 
 current_cpu_usage = 0
@@ -134,8 +134,8 @@ def f(x):
 
                 if BusyPySettings["exit"]:
                     print("Server instructed to exit...")
-                    client.GetSettings(cp, mp, running)  # report in one last time
                     running = False
+                    client.GetSettings(cp, mp, running)  # report in one last time
 
             except KeyboardInterrupt:
                 BusyPySettings["exit"] = True

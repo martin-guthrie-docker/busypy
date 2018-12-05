@@ -122,18 +122,16 @@ The server is meant to go offline, or be restarted mulitple times.  The server i
 1) Where is the busypyserver container?
 
     Its the same container.  Use this to run busypyserver,
-    
-    
-    docker run -it martinguthriedocker/busypy busypyserver.py --help
-    
-
+      
+    `docker run -it martinguthriedocker/busypy busypyserver.py --help`
+  
 2) How long does it take for CPU/Memory usage to stabilize?
 
     Memory should stabilize in one internal/reporting cycle, which is ~2 seconds.
-    
     CPU usage can take up to 10 cycles to stabilize, up to ~20 seconds.
 
 
 ## Issues
 
-* CPU percent activity may not work so well above ~80% on modern HW.  The algorthym for being busy is not that adaptive, so it can get to a point where it can no longer get busier.
+* CPU percent activity may not work so well above ~80% on modern HW.  The algorithm for being busy is not that adaptive, so it can get to a point where it can no longer get busier.
+* The client may have trouble contacting the server if the server has been offline.  It seems gRPC socket gets stuck for a while, or even indefinitely.  Don't have a workaround for this issue. 

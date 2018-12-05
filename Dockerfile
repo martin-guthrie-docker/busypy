@@ -1,5 +1,8 @@
-# build: docker build -t busypy .
-# run:
+# steps: docker build -t busypy .
+#        docker images (get the hash_value)
+#        docker tag <hash_value> martinguthriedocker/busypy
+#        docker push martinguthriedocker/busypy
+#
 # --------------------------------------
 # Two stage build,
 # 1) python base image with gcc to build python modules
