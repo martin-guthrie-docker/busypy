@@ -81,7 +81,7 @@ class clientIPs(object):
     def total(self):
         return len(self._clients)
 
-    def targeted_client(self, ip, pid):
+    def targeted_client_add(self, ip, pid):
         """ Add ip:pid only once
         :param ip:
         :param pid:
@@ -96,13 +96,28 @@ class clientIPs(object):
                 return True
         return False
 
+    def targeted_total(self):
+        return len(self._clients_updated)
+
     def is_targeted_updated(self, ip):
+        """ Check if a specific client ip has been updated
+        :param ip:
+        :return: True or False
+        """
         if not ip in self._clients_updated: return False
         if not ip in self._clients: return False
 
         l1 = self._clients_updated[ip]
         l2 = self._clients[ip]
         return set(l1) == set(l2)
+
+    def is_all_targeted_updated(self):
+        """ Check to see if all targets (IP:PID) have been updated
+        :return: True or False
+        """
+        for ip in self._clients_updated:
+            if not self.is_targeted_updated(ip): return False
+        return True
 
 
 clients = clientIPs()
@@ -172,13 +187,17 @@ class gRPCServer(busypy_pb2_grpc.BusyPyServiceServicer):
                 # if no new clients have been added during this polling window, then operations
                 # can be done - we have seen all the clients by now
 
-                if wait_for_num_clients and wait_for_num_clients == clients.total():
-                    # this IMPLIES that all clients have received their new targets, so we can exit
-                    print("Expected number ({}) of clients checked in, exiting server...".format(wait_for_num_clients))
-                    set_run_server(False)
+                if wait_for_num_clients:
+                    if clients.targeted_total() < wait_for_num_clients:
+                        clients.targeted_client_add(ctx['ip'], ctx['pid'])
+
+                    if clients.is_all_targeted_updated():
+                        # this IMPLIES that all clients have received their new targets, so we can exit
+                        print("Expected number ({}) of clients checked in, exiting server...".format(wait_for_num_clients))
+                        set_run_server(False)
 
                 if target_client_ip is not None and ctx['ip'] == target_client_ip:
-                    if clients.targeted_client(ctx['ip'], ctx['pid']):
+                    if clients.targeted_client_add(ctx['ip'], ctx['pid']):
                         # first time we see the client, update it
                         BusyPySettings["update"] = True
                         print("target {}:{} -> {}".format(ctx['ip'], ctx['pid'], BusyPySettings))

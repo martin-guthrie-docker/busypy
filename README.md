@@ -2,12 +2,12 @@
 
 A python3 gRPC client/server toolset for creating dummy workloads on nodes in a cluster.  
 
-The workload can,
+The client workload can,
  * consume CPU usage across any number of cores, specified in percent
  * consume overall node memory, specified in percent 
 
-When the server is used, 
-* a client or all the clients can be targeted
+When the server is used, client settings can be updated dynamically,
+* a specific client, number of clients or all the clients can be targeted
 * client cpu/memory usage can be dynamically changed
 * client workload (container) can be forced to exit
 
@@ -50,7 +50,7 @@ Memory target usage is specified at the CLI as a total for the node, but it is r
 
  ## Client/Server
 
-In this setup, clients will call into a server in order to get the target cpu/mem settings.   
+In this setup, clients will call into a server in order to get the target cpu/mem settings.  When new settings are applied to the client, all the client PIDs are set to the same values.
 
 If the server is not reachable/offline, the client will use its last known settings, either from the last time it contacted the server, or from the command line when the client was started.
 
@@ -78,31 +78,48 @@ The server is meant to go offline, or be restarted mulitple times.  The server i
 
 ### Case 1: Set all clients to cpu/mem
 
-* Choice to either start all clients first, or start the server first, then the clients.
-  * If the clients are started first, they will start with cpu/mem usage based on client defaults or CLI parameters when the client was started.
-* Then start the server with desired client targets,
-
-    `python3 busypyserver.py --cpu 20 --mem 10`
-
-  * if you know the number of clients there are, and you want the server to exit after all the clients have gotten the new settings, use,
+* Choice to use a server or just a client.
+  * Just a client, setting 5 CPU cores to 5%.  The memory usage will be the default.
   
-    `python3 busypyserver.py --cpu 20 --mem 10 --wait-for 5`
+    `docker run -it martinguthriedocker/busypy busypy.py --cpus 5 --cpu 5`
+
+  * Using a server, the server can be started before or after the clients are started.
+    * if the clients are started first, they will start with cpu/mem usage based on client defaults or CLI parameters when the client was started.
+    * the clients must be told the server IP address (and port if different than default).  The Docker container must expose the needed port.
+    * when the clients call into the server, their settings will be updated to the server settings.
+      * client command,
     
-### Case 2: Set one client to different target
+        `docker run -it -p 50051:50051 martinguthriedocker/busypy busypy.py --cpus 5 --server 10.168.2.149 --cpu 5`
 
-* To set one client to different settings than the others use the client IP address,
-
-    `python3 busypyserver.py --cpu 30 --mem 20 --client-ip 192.168.0.20`
-
-  * if you want the server to exit after that client has been set, use,
+      * server command, changes all clients to 10% cpu usage,
+      
+        `docker run -it -p 50051:50051 martinguthriedocker/busypy busypyserver.py --cpu 10` 
   
-      `python3 busypyserver.py --cpu 30 --mem 20 --client-ip 192.168.0.20 --wait-for 1`
+### Case 2: Set one/more client(s) to different target at later time
+
+* To set one client to different settings than the others, tell the server to target that IP.  You must know the IP address of the client you wish to change.
+  * Start the client(s),
+
+    `docker run -it -p 50051:50051 martinguthriedocker/busypy busypy.py --cpus 5 --server 10.168.2.149 --cpu 5`
+
+  * start the server, and use `--client-ip` to target the client you want to change,
+  
+    `docker run -it -p 50051:50051 martinguthriedocker/busypy busypyserver.py --cpu 10 --client-ip 172.17.0.2`
+      
+  * if you wanted to change a number of nodes from one setting to another, you could use `--wait-for` to count how many clients to change.
+    * Note that `--wait-for` will use the first clients that check in... (non-deterministic)  
+    * If for example, you had 10 nodes deployed and you wanted to change half (5) of them,
+
+      `docker run -it -p 50051:50051 martinguthriedocker/busypy busypyserver.py --cpu 10 --wait-for 5`
+
+* With either `--clinet-ip` or `--wait-for`, when the server is completed the task, it will exit.
+
 
 ### Case 3: Monitor clients only
 
 * For just monitoring, use
 
-    `python3 busypyserver.py --monitor`
+    `docker run -it -p 50051:50051 martinguthriedocker/busypy busypyserver.py --monitor`
 
 ## Docker Container
 
@@ -130,6 +147,9 @@ The server is meant to go offline, or be restarted mulitple times.  The server i
     Memory should stabilize in one internal/reporting cycle, which is ~2 seconds.
     CPU usage can take up to 10 cycles to stabilize, up to ~20 seconds.
 
+3) Are all the client's processes set to the same CPU usage?
+
+    Yes.  And the memory usage is for the whole node, not per process.
 
 ## Issues
 
