@@ -12,14 +12,19 @@ FROM python:3.6-alpine
 RUN apk update && \
     apk add build-base gcc g++ musl-dev linux-headers
 
-ADD requirements.txt /
-RUN pip3 install -r requirements.txt
+ADD requirements_docker.txt /
+RUN pip3 install -r requirements_docker.txt
+RUN pip3 uninstall -y pip wheel
+RUN rm -r /usr/local/lib/python3.6/site-packages/setuptools*
 
 # --------------------------------------
 # 2) copy over the python install with compiled modules...
 #
 FROM python:3.6-alpine
-COPY --from=0 /usr/local/lib/python3.6/ /usr/local/lib/python3.6/
+RUN pip3 uninstall -y pip wheel
+RUN rm -r /usr/local/lib/python3.6/site-packages/setuptools*
+
+COPY --from=0 /usr/local/lib/python3.6/site-packages/ /usr/local/lib/python3.6/site-packages/
 
 RUN apk add libstdc++
 
