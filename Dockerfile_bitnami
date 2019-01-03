@@ -1,0 +1,22 @@
+# alternate base image...
+# advantage here is getting apt/dpkp tools
+FROM bitnami/minideb:jessie
+RUN apt-get update; apt-get install -y python3-minimal python3-psutil
+RUN apt-get install -y python3-pip
+RUN pip3 install --upgrade pip
+ADD requirements_docker.txt /
+RUN pip3 install -r /requirements_docker.txt
+
+FROM bitnami/minideb:jessie
+RUN apt-get update; apt-get install -y python3-minimal python3-psutil
+
+COPY --from=0 /usr/local/lib/python3.4/dist-packages/grpc/ /usr/local/lib/python3.4/dist-packages/grpc/
+COPY --from=0 /usr/local/lib/python3.4/dist-packages/grpcio-1.17.1.dist-info/ /usr/local/lib/python3.4/dist-packages/grpcio-1.17.1.dist-info/
+# pip is not copied and that saves ~10MB
+
+RUN rm -rf /var/lib/dpkg
+
+WORKDIR /cpu_load
+ADD *.py /cpu_load/
+
+ENTRYPOINT ["python"]
