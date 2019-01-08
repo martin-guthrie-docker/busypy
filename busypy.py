@@ -26,14 +26,15 @@ MEMORY_HOG_CHUNK_SIZE_MB = 200
 
 BusyPySettings = {
     "update": True,  # when set client will update
-    "cpu": 27,
-    "mem": 7,
+    "cpu": 10,
+    "mem": 5,
     "exit": False,
 }
 
 SLEEP_INC = 0.0001
-SLEEP_INITIAL_VALUE = 0.4
-SLEEP_INITIAL_BINARY_SRC_COUNT = 10   # # cycles to try sleep /= 2
+SLEEP_INC_FAST_FACTOR = 0.8
+SLEEP_INITIAL_VALUE = 0.4  # start from a low CPU usage and go higher
+SLEEP_INITIAL_BINARY_SRC_COUNT = 20   # # cycles to try sleep *= SLEEP_INC_FAST_FACTOR
 
 current_cpu_usage = 0
 update = False
@@ -78,8 +79,7 @@ def f(x):
     - gets 'commands/settings' from a gRPC Server
     :param x: not used
     """
-    global current_cpu_usage, update, running, force_exit
-    sleep = SLEEP_INITIAL_VALUE
+    global current_cpu_usage, update, running, force_exit, sleep
 
     pid = os.getpid()
     client = gRPCClient(pid)
@@ -106,7 +106,7 @@ def f(x):
           update its cpu(sleep)/mem usage in order to try and hit target
         :param arg: nothing right now
         """
-        global current_cpu_usage, update, running
+        global current_cpu_usage, update, running, binary_src_count, sleep
         while (not BusyPySettings["exit"]) and not force_exit:
             cp = int(p.cpu_percent(interval=PSUTIL_CAPTURE_INTERVAL_SEC))  # blocking
             mp = int(p.memory_percent())
@@ -131,6 +131,9 @@ def f(x):
 
                     BusyPySettings["cpu"] = newTargets.cpuLoadPercent
                     BusyPySettings["exit"] = newTargets.clientExit
+
+                    binary_src_count = SLEEP_INITIAL_BINARY_SRC_COUNT
+                    sleep = SLEEP_INITIAL_VALUE
 
                 if BusyPySettings["exit"]:
                     print("Server instructed to exit...")
@@ -176,6 +179,7 @@ def f(x):
 
     # quick and dirty things to make CPU busy... hacked!
     reversed = False
+    sleep = SLEEP_INITIAL_VALUE
     binary_src_count = SLEEP_INITIAL_BINARY_SRC_COUNT
     busy_iterations = 500
     busy_iterations_increase_done = False
@@ -198,7 +202,7 @@ def f(x):
                     if binary_src_count > 0:
                         binary_src_count -= 1
                         if current_cpu_usage < BusyPySettings["cpu"]:
-                            sleep /= 2
+                            sleep = sleep * SLEEP_INC_FAST_FACTOR
                         else:
                             # cpu usage is now greater than target, stop binary search
                             binary_src_count = 0
