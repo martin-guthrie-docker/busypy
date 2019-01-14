@@ -36,6 +36,8 @@ SLEEP_INC_FAST_FACTOR = 0.8
 SLEEP_INITIAL_VALUE = 0.4  # start from a low CPU usage and go higher
 SLEEP_INITIAL_BINARY_SRC_COUNT = 20   # # cycles to try sleep *= SLEEP_INC_FAST_FACTOR
 
+MEM_TOLERANCE_PERCENT = 2
+
 current_cpu_usage = 0
 update = False
 running = True
@@ -162,9 +164,11 @@ def f(x):
             # note that this memory usage adaptation could be running on multiple
             # cpus (processes) and thus "fighting" each other... but in testing
             # this error seemed minimal... TODO: allow only one process to do memory usage
-            if p.memory_percent() > BusyPySettings["mem"]:
+            low_mem = BusyPySettings["mem"] - MEM_TOLERANCE_PERCENT
+            hi_mem = BusyPySettings["mem"] + MEM_TOLERANCE_PERCENT
+            if p.memory_percent() > hi_mem:
                 MEMORY_HOG.pop()
-            else:
+            elif p.memory_percent() < low_mem:
                 MEMORY_HOG.append("*" * 1024 * 1024 * MEMORY_HOG_CHUNK_SIZE_MB)
 
         print("cpu_usage thread exit")
