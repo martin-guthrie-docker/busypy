@@ -22,7 +22,7 @@ GRPC_SERVER = "localhost"
 
 lock = threading.Lock()
 PSUTIL_CAPTURE_INTERVAL_SEC = 2
-MEMORY_HOG_CHUNK_SIZE_MB = 200
+MEMORY_HOG_CHUNK_SIZE_MB = 100
 
 BusyPySettings = {
     "update": True,  # when set client will update
@@ -288,7 +288,10 @@ if __name__ == '__main__':
     if args.cpu_all:  processes = cpu_count()
     else: processes = args.cpus
 
-    BusyPySettings["cpu"] = args.cpu
+    # docker stats reports the total (sum) of % user per CPU,
+    # busypy takes the target percent and divides per # of cpus
+
+    BusyPySettings["cpu"] = args.cpu / processes
     BusyPySettings["mem"] = args.mem
     GRPC_SERVER = args.grpc_server
     GRPC_SERVER_PORT = args.grpc_port
