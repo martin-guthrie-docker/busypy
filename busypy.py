@@ -291,8 +291,8 @@ if __name__ == '__main__':
     # docker stats reports the total (sum) of % user per CPU,
     # busypy takes the target percent and divides per # of cpus
 
-    BusyPySettings["cpu"] = args.cpu / processes
-    BusyPySettings["mem"] = args.mem / processes
+    BusyPySettings["cpu"] = int(args.cpu / processes)
+    BusyPySettings["mem"] = int(args.mem / processes)
     GRPC_SERVER = args.grpc_server
     GRPC_SERVER_PORT = args.grpc_port
 
