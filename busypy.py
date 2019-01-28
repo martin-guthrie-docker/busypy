@@ -89,6 +89,8 @@ def f(x):
     ip = socket.gethostbyname(socket.gethostname())
     MEMORY_HOG = []
 
+    os.nice(10)
+
     def set_memory():
         MEMORY_HOG.clear()
         while p.memory_percent() < BusyPySettings["mem"]:
@@ -109,6 +111,9 @@ def f(x):
         :param arg: nothing right now
         """
         global current_cpu_usage, update, running, binary_src_count, sleep
+
+        os.nice(10)
+
         while (not BusyPySettings["exit"]) and not force_exit:
             cp = int(p.cpu_percent(interval=PSUTIL_CAPTURE_INTERVAL_SEC))  # blocking
             mp = int(p.memory_percent())
