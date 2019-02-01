@@ -228,7 +228,27 @@ def serve():
         server.stop(0)
 
 
+def _VERSION():
+    try:
+        with open("VERSION", "r") as f:
+            lines = f.readlines()
+
+        branch = 'unknown'
+        version = 'unknown'
+        for line in lines:
+            if line.startswith("branch"):
+                branch = line.split('=')[1].strip()
+            elif line.startswith('version'):
+                version = line.split('=')[1].strip()
+        return "{}/{}".format(branch, version)
+    except:
+        print("Error reading VERSION")
+        return "unknown"
+
+
 if __name__ == '__main__':
+    VERSION = _VERSION()
+
     epilog = ("This server can be started and stopped anytime, clients will continue to"  
               "operate to their last known target settings.  Restart this Server with new"
               "parameters to affect change in the clients.")
@@ -260,7 +280,13 @@ if __name__ == '__main__':
     parser.add_argument('--monitor', dest="monitor", action='store_true',
                         help='Monitor clients only')
 
+    parser.add_argument('--version', dest="version", action='store_true', help='version')
+
     args = parser.parse_args()
+
+    if args.version:
+        print(VERSION)
+        sys.exit(0)
 
     BusyPySettings["cpu"] = args.cpu
     BusyPySettings["mem"] = args.mem
