@@ -266,6 +266,13 @@ if __name__ == '__main__':
     original_sigint = signal.getsignal(signal.SIGINT)
     signal.signal(signal.SIGINT, exit_gracefully)
 
+    try:
+        with open("VERSION", "r") as f:
+            VERSION = f.readline()
+    except:
+        print("Error reading VERSION")
+        VERSION = "unknown"
+
     parser = argparse.ArgumentParser(description='BusyPy Container')
 
     parser.add_argument('--cpu', type=int, default=BusyPySettings["cpu"],
@@ -286,7 +293,13 @@ if __name__ == '__main__':
     parser.add_argument('--port', dest="grpc_port", action='store', default=GRPC_SERVER_PORT,
                         help='gRPC server port, default={}.'.format(GRPC_SERVER_PORT))
 
+    parser.add_argument('--version', dest="version", action='store_true', help='version')
+
     args = parser.parse_args()
+
+    if args.version:
+        print(VERSION)
+        sys.exit(0)
 
     # TODO: limit cpu usage to 5-90%
 
