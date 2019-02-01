@@ -267,11 +267,15 @@ def exit_gracefully(signum, frame):
 def _VERSION():
     try:
         with open("VERSION", "r") as f:
-            line = f.readline()
+            lines = f.readlines()
+
+        branch = 'unknown'
+        version = 'unknown'
+        for line in lines:
             if line.startswith("branch"):
-                branch = line.split('=')[1]
+                branch = line.split('=')[1].strip()
             elif line.startswith('version'):
-                version = line.split('=')[1]
+                version = line.split('=')[1].strip()
         return "{}/{}".format(branch, version)
     except:
         print("Error reading VERSION")
