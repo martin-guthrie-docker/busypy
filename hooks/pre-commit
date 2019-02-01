@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -e
+
+commit=$(git log -1 --pretty="%H%n%ci") # hash \n date
+commit_hash=$(echo "$commit" | head -1)
+commit_date=$(echo "$commit" | head -2 | tail -1) # 2010-12-28 05:16:23 +0300
+commit_version=$(git describe --tags)
+
+branch_name=$(git rev-parse --symbolic-full-name --abbrev-ref HEAD)
+
+# Write it
+echo -e "prev_commit=$commit_hash\ndate=$commit_date\nbranch=$branch_name\nversion=$commit_version\n" > VERSION
+
+git add VERSION

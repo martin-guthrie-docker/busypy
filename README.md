@@ -155,3 +155,7 @@ The server is meant to go offline, or be restarted mulitple times.  The server i
 
 * CPU percent activity may not work so well above ~80% on modern HW.  The algorithm for being busy is not that adaptive, so it can get to a point where it can no longer get busier.
 * The client may have trouble contacting the server if the server has been offline.  It seems gRPC socket gets stuck for a while, or even indefinitely.  Don't have a workaround for this issue. 
+
+## Developer
+
+* copy `hooks` to `.git/hooks`

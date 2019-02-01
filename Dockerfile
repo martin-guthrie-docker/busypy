@@ -31,9 +31,6 @@ RUN apk add libstdc++
 WORKDIR /cpu_load
 ADD *.py /cpu_load/
 
-ARG VERSION=0.0.0
-RUN echo %VERSION% >> VERSION.py
-
 ENTRYPOINT ["python"]
 # docker run -it [martinguthriedocker/]busypy busypy.py --help
 # or

@@ -264,16 +264,25 @@ def exit_gracefully(signum, frame):
     signal.signal(signal.SIGINT, exit_gracefully)
 
 
+def _VERSION():
+    try:
+        with open("VERSION", "r") as f:
+            line = f.readline()
+            if line.startswith("branch"):
+                branch = line.split('=')[1]
+            elif line.startswith('version'):
+                version = line.split('=')[1]
+        return "{}/{}".format(branch, version)
+    except:
+        print("Error reading VERSION")
+        return "unknown"
+
+
 if __name__ == '__main__':
     original_sigint = signal.getsignal(signal.SIGINT)
     signal.signal(signal.SIGINT, exit_gracefully)
 
-    try:
-        with open("VERSION", "r") as f:
-            VERSION = f.readline()
-    except:
-        print("Error reading VERSION")
-        VERSION = "unknown"
+    VERSION = _VERSION()
 
     parser = argparse.ArgumentParser(description='BusyPy Container')
 
